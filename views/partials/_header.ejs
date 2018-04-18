@@ -1,0 +1,15 @@
+<% if(username !== undefined){ %>
+<form action="/logout" method="POST">
+  Currently Login as: <b><%= username %></b> <input type="submit" value="logout">
+</form>
+<% } else{%>
+
+<form action="/login" method="POST">
+  <label for="username">Name =</label>
+  <input id="username" type="text"
+  name="username"
+  placeholder= "Enter Username"
+  style="width: 300px">
+  <input type="submit" value="Submit">
+</form>
+<% } %>

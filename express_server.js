@@ -1,5 +1,8 @@
-var express = require("express");
-var app = express();
+var express = require('express')
+var cookieParser = require('cookie-parser')
+
+var app = express()
+app.use(cookieParser())
 var PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
 
@@ -20,7 +23,10 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls:urlDatabase};
+  let templateVars = {
+    urls: urlDatabase,
+    username:req.cookies["username"]
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -37,8 +43,9 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   let templateVars = {
     shortURL: req.params.id,
-    fullURL: urlDatabase
-  };
+    fullURL: urlDatabase,
+    username:req.cookies["username"]
+  }
 
   res.render("urls_show", templateVars);
 });
@@ -67,6 +74,17 @@ app.post("/urls/:id/delete",(req, res) =>{
 app.get("/hello", (req, res) => {
   res.end("<html><body>Hello <b>World</b></body></html>\n");
 });
+
+app.post("/login", (req, res) =>{
+  res.cookie('username', req.body.username)
+  res.redirect('/urls')
+});
+
+app.post("/logout", (req, res) =>{
+  res.clearCookie('username', req.body.username)
+  res.redirect('/urls')
+});
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
