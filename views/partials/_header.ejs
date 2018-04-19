@@ -4,12 +4,11 @@
 </form>
 <% } else{%>
 
-<form action="/login" method="POST">
-  <label for="username">Name =</label>
-  <input id="username" type="text"
-  name="username"
-  placeholder= "Enter Username"
-  style="width: 300px">
-  <input type="submit" value="Submit">
+<form action="/login" method="GET">
+  <input type="submit" value="Login">
 </form>
+<form action="/register" method="GET">
+  <input type="submit" value="Register">
+</form>
+
 <% } %>
