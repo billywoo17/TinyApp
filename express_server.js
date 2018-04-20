@@ -5,6 +5,7 @@ const app = express()
 app.use(cookieParser())
 const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
+const bcrypt = require('bcrypt');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
@@ -149,11 +150,13 @@ app.post("/register", (req, res) =>{
   let myID = generateRandomString(6);
   let myEmail = req.body.email;
   let myPassword = req.body.password;
+  const hashedPassword = bcrypt.hashSync(myPassword, 10);
 
   for(databaseID in users){
     if(users[databaseID].email === myEmail){
       res.status(400);
       res.send('Email already in use.')
+      return;
     }
   }
 
@@ -161,7 +164,7 @@ app.post("/register", (req, res) =>{
     users[myID] = {
     id:myID,
     email: myEmail,
-    password: myPassword
+    password: hashedPassword
   }
 
   if(!myPassword || !myEmail){
@@ -178,12 +181,14 @@ app.post("/login", (req, res) =>{
   let myEmail = req.body.email;
   let myPassword = req.body.password;
   for(databaseID in users){
-
     let databaseEmail = users[databaseID].email
     let databasePassword = users[databaseID].password
-    if((databaseEmail == myEmail) &&(databasePassword == myPassword)){
+    console.log(databaseEmail == myEmail, bcrypt.compareSync(myPassword, databasePassword))
+    if((databaseEmail == myEmail) &&
+      (bcrypt.compareSync(myPassword, databasePassword))){
       res.cookie('user_id', databaseID);
       res.redirect('/urls');
+    return;
     }
   }
   res.status(400);
