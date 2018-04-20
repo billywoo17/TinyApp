@@ -36,12 +36,19 @@ function RegenIDIfSame(Database, myGenID, value){
 }
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    url: "http://www.lighthouselabs.ca",
+    id: "user2RandomID"
+  },
+  "9sm5xK": {
+    url: "http://www.google.com",
+    id: "user2RandomID"
+  }
 };
 
 const users = {
   "userRandomID": {
+
     id: "userRandomID",
     email: "user@example.com",
     password: "purple-monkey-dinosaur"
@@ -64,26 +71,35 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
   let templateVars = {
     urls: urlDatabase,
-    username:JSON.stringify(users[req.cookies['user_id']])
-  };
+    username:JSON.stringify(users[req.cookies['user_id']]),
+    id: req.cookies['user_id']
+    };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = {
+    urls: urlDatabase,
+    username:JSON.stringify(users[req.cookies['user_id']])
+  };
+  if(!req.cookies['user_id'])
+  {
+    res.redirect("../login")
+  } else{
+  res.render("urls_new", templateVars);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  longURL = urlDatabase[req.params.shortURL];
-  console.log(longURL);
-  res.redirect(urlDatabase[req.params.shortURL]);
+  res.redirect(urlDatabase[req.params.shortURL].url);
 });
 
 app.get("/urls/:id", (req, res) => {
   let templateVars = {
     shortURL: req.params.id,
     fullURL: urlDatabase,
-    username:JSON.stringify(users[req.cookies['user_id']])
+    username:JSON.stringify(users[req.cookies['user_id']]),
+    id: req.cookies['user_id']
   }
 
   res.render("urls_show", templateVars);
@@ -114,8 +130,12 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/delete",(req, res) =>{
-  console.log(req.params.id);
-  delete urlDatabase[req.params.id];
+  if( urlDatabase[req.params.id].id === req.cookies['user_id'])
+  {
+    delete urlDatabase[req.params.id];
+  } else{
+    res.send('You are not the creator of this link')
+  }
   res.redirect('/urls');
 });
 
@@ -154,7 +174,6 @@ app.post("/register", (req, res) =>{
   }
 });
 
-
 app.post("/login", (req, res) =>{
   let myEmail = req.body.email;
   let myPassword = req.body.password;
@@ -162,16 +181,9 @@ app.post("/login", (req, res) =>{
 
     let databaseEmail = users[databaseID].email
     let databasePassword = users[databaseID].password
-    console.log("Compare: ",databaseEmail, myEmail)
-    console.log("Compare: ", databasePassword,myPassword)
-    console.log(databaseID)
     if((databaseEmail == myEmail) &&(databasePassword == myPassword)){
-      console.log('my if statement works')
       res.cookie('user_id', databaseID);
       res.redirect('/urls');
-    // } else{
-    //   res.status(400);
-    //   res.send('Incorrect Email or Password')
     }
   }
   res.status(400);

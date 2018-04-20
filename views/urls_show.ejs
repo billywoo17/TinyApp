@@ -7,13 +7,17 @@
     <% include ./partials/_header %>
 </header>
 <body>
-    <form action="/urls/<%= shortURL %>" method="POST" style="margin:100px;">
-      <label for="longURL"><h2>shortURL: <b><%= shortURL%></b></h2></label>
+    <%if (fullURL[shortURL].id === id){ %>
+    <form action="/urls/<%= shortURL %>" method="POST">
+      <label for="longURL">shortURL: <b><%= shortURL %></b></label>
       <input id="longURL" type="text"
       name="longURL"
-      value="<%= fullURL[shortURL] %>"
+      value="<%= fullURL[shortURL].url %>"
       style="width: 300px">
       <input type="submit" value="Submit">
     </form>
+    <% } else{ %>
+    You are not the creator of this link
+    <% } %>
 </body>
 </html>

@@ -9,14 +9,18 @@
 <body>
   <ul>
   <% for(url in urls){%>
-    <li>
-      <form method="POST"action="/urls/<%=url%>/delete">
-      <%= `${url} --> ${urls[url]}`%>
-      <a href="/urls/<%=url%>">edit</a>
+    <%if (urls[url].id === id){ %>
+      <li>
+      <form method="POST" action="/urls/<%=url%>/delete">
+        <%= `${url} --> ${urls[url].url}`%>
+        <a href="/urls/<%=url%>">edit</a>
         <button type="submit">Delete</button>
       </form>
-      <% } %>
-    </li>
+      </li>
+    <% } %>
+  <% } %>
   <ul>
+    <br />
+    <a href="/urls/new"> new URL </a>
 </body>
 </html>
