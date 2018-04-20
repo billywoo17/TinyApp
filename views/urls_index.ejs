@@ -7,11 +7,11 @@
     <% include ./partials/_header %>
 </header>
 <body>
-  <ul>
+  <ul style="font-size:12px; padding:50px;>
   <% for(link in urls){%>
     <%if (urls[link].id === id){ %>
       <li>
-      <form method="POST" action="/urls/<%=link%>/delete">
+      <form method="POST" action="/urls/<%=link%>/delete" >
         <%= `${link} --> ${urls[link].url}`%>
         <a href="/urls/<%=link%>">edit</a>
         <button type="submit">Delete</button>
