@@ -1,8 +1,14 @@
 const express = require('express')
-const cookieParser = require('cookie-parser')
+var cookieSession = require('cookie-session')
 
 const app = express()
-app.use(cookieParser())
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1'],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
 const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
@@ -19,14 +25,13 @@ function generateRandomString(length) {
   return text;
 }
 
-function addHTTP(url, shortURL){
-  if(url.includes(`http`) === true){
-    return urlDatabase[shortURL] = url;
+function addHTTP(url, shortURL, myID){
+  if(url.includes(`http`) == true){
+    return urlDatabase[shortURL] = {url: url, id: myID} ;
 
-  } else{
-    url = "http://" + url;
-    return urlDatabase[shortURL] = url;
   }
+  url = "http://" + url;
+  return urlDatabase[shortURL] = {url: url, id: myID};
 }
 
 function RegenIDIfSame(Database, myGenID, value){
@@ -35,7 +40,6 @@ function RegenIDIfSame(Database, myGenID, value){
     console.log(`key already exsisted. generating new key ${myGenID}`);
   }
 }
-
 const urlDatabase = {
   "b2xVn2": {
     url: "http://www.lighthouselabs.ca",
@@ -72,23 +76,21 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
   let templateVars = {
     urls: urlDatabase,
-    username:JSON.stringify(users[req.cookies['user_id']]),
-    id: req.cookies['user_id']
+    username:JSON.stringify(users[req.session.user_id]),
+    id: req.session.user_id
     };
+    console.log(req.session.user_id)
+    console.log(urlDatabase)
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
     urls: urlDatabase,
-    username:JSON.stringify(users[req.cookies['user_id']])
+    username:JSON.stringify(users[req.session.user_id])
   };
-  if(!req.cookies['user_id'])
-  {
-    res.redirect("../login")
-  } else{
   res.render("urls_new", templateVars);
-  }
+
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -96,18 +98,17 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  let templateVars = {
-    shortURL: req.params.id,
-    fullURL: urlDatabase,
-    username:JSON.stringify(users[req.cookies['user_id']]),
-    id: req.cookies['user_id']
-  }
-
+  if(users[req.session.user_id]){;
+    let templateVars = {
+      shortURL: req.params.id,
+      fullURL: urlDatabase,
+      username:JSON.stringify(users[req.session.user_id].email),
+      id: req.session.user_id
+    }
   res.render("urls_show", templateVars);
-});
-
-app.get("/hello", (req, res) => {
-  res.end("<html><body>Hello <b>World</b></body></html>\n");
+  return;
+  }
+  res.redirect("/register");
 });
 
 app.get("/register", (req, res) =>{
@@ -119,30 +120,40 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  addHTTP(req.body.longURL, req.params.id);
-  res.redirect('/urls/');
+  if(users[req.session.user_id]){
+    addHTTP(req.body.longURL, req.params.id, users[req.session.user_id].id);
+    res.redirect('/urls/');
+    return;
+  }
+  res.redirect("/register");
 });
 
 app.post("/urls", (req, res) => {
-  let short = generateRandomString(6);
-  RegenIDIfSame(urlDatabase, short, 6)
-  addHTTP(req.body.longURL, short);
-  res.send(`${short} ${req.body.longURL}`);
+  if(users[req.session.user_id]){
+      let short = generateRandomString(6);
+      RegenIDIfSame(urlDatabase, short, 6)
+      let newHTTP = addHTTP(req.body.longURL, short ,users[req.session.user_id].id);  urlDatabase[short] = {
+      url: newHTTP.url,
+      id: req.session.user_id
+    };
+  res.redirect('/urls/');
+  return;
+  }
+  res.redirect("/register")
 });
 
 app.post("/urls/:id/delete",(req, res) =>{
-  if( urlDatabase[req.params.id].id === req.cookies['user_id'])
+  if( urlDatabase[req.params.id].id === req.session.user_id)
   {
     delete urlDatabase[req.params.id];
-  } else{
-    res.send('You are not the creator of this link')
+    res.redirect('/urls');
   }
-  res.redirect('/urls');
+  res.send('You are not the creator of this link')
 });
 
 
 app.post("/logout", (req, res) =>{
-  res.clearCookie('user_id', req.body.username);
+  req.session = null;
   res.redirect('/urls');
 });
 
@@ -170,11 +181,11 @@ app.post("/register", (req, res) =>{
   if(!myPassword || !myEmail){
     res.status(400);
     res.send('Email and Password is required.');
-  } else{
-
-  res.cookie('user_id', myID);
-  res.redirect('/urls');
+    return;
   }
+  req.session.user_id = myID;
+  res.redirect('/urls');
+
 });
 
 app.post("/login", (req, res) =>{
@@ -183,10 +194,9 @@ app.post("/login", (req, res) =>{
   for(databaseID in users){
     let databaseEmail = users[databaseID].email
     let databasePassword = users[databaseID].password
-    console.log(databaseEmail == myEmail, bcrypt.compareSync(myPassword, databasePassword))
     if((databaseEmail == myEmail) &&
       (bcrypt.compareSync(myPassword, databasePassword))){
-      res.cookie('user_id', databaseID);
+      req.session.user_id = databaseID;
       res.redirect('/urls');
     return;
     }
@@ -198,3 +208,4 @@ app.post("/login", (req, res) =>{
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+

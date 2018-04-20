@@ -8,12 +8,12 @@
 </header>
 <body>
   <ul>
-  <% for(url in urls){%>
-    <%if (urls[url].id === id){ %>
+  <% for(link in urls){%>
+    <%if (urls[link].id === id){ %>
       <li>
-      <form method="POST" action="/urls/<%=url%>/delete">
-        <%= `${url} --> ${urls[url].url}`%>
-        <a href="/urls/<%=url%>">edit</a>
+      <form method="POST" action="/urls/<%=link%>/delete">
+        <%= `${link} --> ${urls[link].url}`%>
+        <a href="/urls/<%=link%>">edit</a>
         <button type="submit">Delete</button>
       </form>
       </li>
