@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <title>TinyApp</title>
 </head>
 <header>
-    <% include ./partials/_header %>
+  <% include ./partials/_header %>
 </header>
-  <body>
-    <%if (fullURL[shortURL].id === id){ %>
-    <form action="/urls/<%= shortURL %>" method="POST" style="font-size:12px; padding:50px";>
-      <label for="longURL">shortURL: <b><%= shortURL %></b></label>
-      <input id="longURL" type="text"
-      name="longURL"
-      value="<%= fullURL[shortURL].url %>"
-      style="width: 300px">
+
+<body>
+  <%if (fullURL[shortURL].id === id){ %>
+    <form action="/urls/<%= shortURL %>" method="POST" style="font-size:12px; padding:50px" ;>
+      <label for="longURL">shortURL:
+        <b>
+          <%= shortURL %>
+        </b>
+      </label>
+      <input id="longURL" type="text" name="longURL" value="<%= fullURL[shortURL].url %>" style="width: 300px">
       <input type="submit" value="Submit">
     </form>
     <% } else{ %>
-    You are not the creator of this link
-    <% } %>
+      You are not the creator of this link
+      <% } %>
 </body>
+
 </html>
