@@ -1,15 +1,16 @@
 <div style="font-size:12px;>
-<% if(username !== undefined){ %>
-<form action=" /logout " method="POST " >
-  Currently Login as: <b><%= username %></b> <input type="submit " value="logout ">
-</form>
-<% } else{%>
+  <% if(username !== undefined){ %>
+    <form action="/logout" method="POST">
+      Currently Login as: <b><%= username %></b> <input type="submit" value="logout">
+    </form>
 
-<form action="/login " method="GET ">
-  <input type="submit " value="Login ">
-</form>
-<form action="/register " method="GET ">
-  <input type="submit " value="Register ">
-</form>
-<% } %>
+  <% } else{%>
+  <form action="/login" method="GET">
+    <input type="submit" value="Login">    
+  </form>
+  <form action="/register" method="GET">
+      <input type="submit" value="Register">
+  </form>
+
+  <% } %>
 </div>
